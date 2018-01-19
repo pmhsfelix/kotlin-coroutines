@@ -2,10 +2,10 @@
 title: Kotlin Coroutines
 tag_text: Kotlin Coroutines
 description: Kotlin Coroutines
-url: "https://pmhsfelix.github.io"
+url: "https://labs.pedrofelix.org"
 baseurl: "/kotlin-coroutines"
 author:
-  url: "https://github.com/pmhsfelix"
+  url: "https://labs.pedrofelix.org"
   name: "Pedro Felix" 
 
 font-awesome-include: true # make this false if you don't need font-awesome
