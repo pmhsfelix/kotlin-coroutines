@@ -1,1 +1,14 @@
-theme: jekyll-theme-cayman
+# Site settings
+title: HTTP API Specs
+tag_text: HTTP API Specs
+description: HTTP API Specs
+url: "https://pmhsfelix.github.io"
+baseurl: "/http-api-specs"
+author:
+  url: "https://github.com/pmhsfelix"
+  name: "Pedro Felix" 
+
+font-awesome-include: true # make this false if you don't need font-awesome
+
+
+exclude: ["README.md"]
