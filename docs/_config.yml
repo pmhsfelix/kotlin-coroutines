@@ -1,9 +1,9 @@
 # Site settings
-title: HTTP API Specs
-tag_text: HTTP API Specs
-description: HTTP API Specs
+title: Kotlin Coroutines
+tag_text: Kotlin Coroutines
+description: Kotlin Coroutines
 url: "https://pmhsfelix.github.io"
-baseurl: "/http-api-specs"
+baseurl: "/kotlin-coroutines"
 author:
   url: "https://github.com/pmhsfelix"
   name: "Pedro Felix" 
