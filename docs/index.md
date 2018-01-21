@@ -18,7 +18,7 @@ fun simpleFunction(a: Int, b: Int): Int {
 that takes some parameters, performs two steps, represented by the `log.info` calls, and returns a value.
 Calling this function in our `main` function
 
-```Kotlin
+```kotlin
 fun main(args: Array<String>) {
     log.info("main started")
     log.info("result is {}", simpleFunction(40, 2))
@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
 
 produces the following
 
-```shell
+```
 8 [main] INFO intro - main started
 9 [main] INFO intro - step 1
 9 [main] INFO intro - step 2
@@ -45,7 +45,7 @@ The following diagram illustrates the execution of `simpleFunction`, where all t
 Now, suppose that between `step 1` and `step 2` we need to wait for something to happen, such as receiving a message of an external system or waiting for a time period to elapse.
 To keep things simple lets illustrate that using a `Thread.sleep`
 
-```Kotlin
+```kotlin
 fun simpleFunctionWithDelay(a: Int, b: Int): Int {
     log.info("step 1")
     Thread.sleep(1000)
@@ -80,7 +80,7 @@ Kotlin **suspendible** functions provide us with a way of handling these *pauses
 
 So, lets convert the previous `simpleFunctionWithDelay` example to a suspendible function that does not block the hosting thread while waiting for the 1000 ms to elapse.
 
-```Kotlin
+```kotlin
 suspend fun suspendFunctionWithDelay(a: Int, b: Int): Int {
     log.info("step 1")
     suspendCoroutine<Unit> { cont ->
@@ -101,7 +101,7 @@ Looking into the function body we notice that it remains mostly unchanged, excep
 This `suspendCoroutine` function is used to suspend the calling suspendible function. 
 It is available in the `kotlin.coroutines.experimental` package and has the following signature
 
-```Kotlin
+```kotlin
 public inline suspend fun <T> suspendCoroutine(crossinline block: (Continuation<T>) -> Unit): T
 ```
 
@@ -110,7 +110,7 @@ In out case, the *remaining* is the `log.info("step 2")` followed by the `return
 
 A continuation is an object implementing the following interface
 
-```Kotlin
+```kotlin
 public interface Continuation<in T> {
     /**
      * Resumes the execution of the corresponding coroutine passing [value] as the return value of the last suspension point.
@@ -137,12 +137,12 @@ Ignoring the `context` field for the moment being, a `Continuation<T>` has two f
 It is the responsability of the function invoking `suspendCoroutine` to pass a `block` that does something with the continuation.
 
 In our case, we just we use a plain Java `ScheduledExecutorService` 
-```Kotlin
+```kotlin
 val executor = Executors.newScheduledThreadPool(1)
 ```
 
 to schedule the execution of the continuation after 1000 ms.
-```Kotlin
+```kotlin
 suspendCoroutine<Unit> { cont ->
         executor.schedule(
           { cont.resume(Unit) }, 
@@ -176,7 +176,7 @@ After the 1000 ms elapses, the `suspendFunctionWithDelay` resumes its execution 
 Using `suspendCoroutine` directly in our `suspendFunctionWithDelay` makes the code a slightly brittle to read, namely due to the nested lambda passed as parameter.
 However, than can be easily solved by wrapping that behaviour on an helper suspendible function
 
-```Kotlin
+```kotlin
 suspend fun delay(ms: Long) {
     suspendCoroutine<Unit> { continuation ->
         executor.schedule({ continuation.resume(Unit) }, ms, TimeUnit.MILLISECONDS)
@@ -185,7 +185,7 @@ suspend fun delay(ms: Long) {
 ```
 
 The `suspendFunctionWithDelay` now becomes
-```Kotlin
+```kotlin
 suspend fun suspendFunctionWithDelay2(a: Int, b: Int): Int {
     log.info("step 1")
     delay(1000)
@@ -200,7 +200,7 @@ However, suspendible functions cannot be be called directly from regular functio
 Namely, our regular `main` function cannot call `suspendFunctionWithDelay` directly.
 For that we need to use another function provided by the Kotlin library called `startCoroutine`, which is an regular (i.e. non-suspendible) extension function over a `suspendible lambda`.
 
-```Kotlin
+```kotlin
 public fun <T> (suspend  () -> T).startCoroutine(
         completion: Continuation<T>
 )
@@ -211,7 +211,7 @@ The `startCoroutine` receives:
 * the continuation to use when the suspendible function completes its execution.
 
 Using it we can create a simple `startAndForget`
-```Kotlin
+```kotlin
 fun startAndForget(suspendibleFunction: suspend () -> Unit) {
     suspendibleFunction.startCoroutine(object : Continuation<Unit> {
         override fun resume(value: Unit) {
@@ -230,7 +230,7 @@ fun startAndForget(suspendibleFunction: suspend () -> Unit) {
 that starts a suspendible function and ignores its result.
 
 We are now in condition to show the `main` function using the suspendible version
-```Kotlin
+```kotlin
 fun main(args: Array<String>) {
     log.info("main started")
     startAndForget {
@@ -242,7 +242,7 @@ fun main(args: Array<String>) {
 
 which produces the output already shown before
 
-```shell
+```
 8 [main] INFO intro - main started
 20 [main] INFO intro - step 1
 24 [main] INFO intro - main ended
@@ -255,7 +255,7 @@ Notice how the `result is 42` log message appears after the `main` function is t
 The continuation passed in to startCoroutine allow us to do more interesting things than just ignoring the result.
 For instance, the following example uses a `CompletableFuture` to allow the `main` function to synchronize with the completable function termination.
 
-```Kotlin
+```kotlin
 fun startAndGetFuture(suspendibleFunction: suspend () -> Unit): CompletableFuture<Unit>{
     val future = CompletableFuture<Unit>()
     suspendibleFunction.startCoroutine(object : Continuation<Unit> {
@@ -277,7 +277,7 @@ fun startAndGetFuture(suspendibleFunction: suspend () -> Unit): CompletableFutur
 With this, we can rewrite `main` to synchronize with the future completion.
 We use a blocking `future.get()` but on a real scenario we could also use `future.thenApply`
 
-```Kotlin
+```kotlin
 fun main(args: Array<String>) {
     log.info("main started")
     val future = startAndGetFuture {
@@ -291,7 +291,7 @@ fun main(args: Array<String>) {
 
 which produces
 
-```shell
+```
 8 [main] INFO intro - main started
 16 [main] INFO intro - step 1
 1022 [pool-1-thread-1] INFO intro - step 2
@@ -304,7 +304,7 @@ Notice how the `main` function only ends after the suspendible function complete
 Until now, and based solely on this simple example, all this suspendible mechanics may seem a rather complex way to achieve something that could be done using a simple callback.
 However, the advantage of the coroutine mechanism starts to be apparent when the suspendible functions is more than just an unconditional sequence of steps.
 
-```Kotlin
+```kotlin
 suspend fun suspendFunctionWithDelayAndALoopWithConditionalLogic(a: Int, b: Int): Int {
     for(i in 0..3) {
         log.info("step 1 of iteration $i")
@@ -319,7 +319,7 @@ suspend fun suspendFunctionWithDelayAndALoopWithConditionalLogic(a: Int, b: Int)
 
 In this case, the produced output is
 
-```shell
+```
 8 [main] INFO intro - main started
 17 [main] INFO intro - step 1 of iteration 0
 1024 [pool-1-thread-1] INFO intro - step 2 of iteration 0
