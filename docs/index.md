@@ -7,7 +7,7 @@
 
 Let's start our journey into coroutines with a simple regular function
 
-```Kotlin
+```kotlin
 fun simpleFunction(a: Int, b: Int): Int {
     log.info("step 1")
     log.info("step 2")

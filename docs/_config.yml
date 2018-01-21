@@ -11,5 +11,4 @@ author:
 font-awesome-include: true # make this false if you don't need font-awesome
 highlighter: rouge
 
-
 exclude: ["README.md"]
