@@ -3,7 +3,7 @@
 ## Motivation ##
 
 
-## Coroutines and Suspendable functions ##
+## Coroutines and suspendible functions ##
 
 Let's start our journey into coroutines with a simple regular function
 
@@ -74,11 +74,11 @@ However, blocking threads may not be a good thing:
 
 * On server applications, blocking threads will reduce the number of requests that can be served simultaneously.
 
-Kotlin **suspendable** functions provide us with a way of handling these *pauses* in a sequential flow without blocking the hosting thread. It allows a function 
+Kotlin **suspendible** functions provide us with a way of handling these *pauses* in a sequential flow without blocking the hosting thread. It allows a function 
 * to suspend its execution and free up the hosting thread.
 * resume its execution in a future point in time, potentially on a different thread.
 
-So, lets convert the previous `simpleFunctionWithDelay` example to a suspendable function that does not block the hosting thread while waiting for the 1000 ms to elapse.
+So, lets convert the previous `simpleFunctionWithDelay` example to a suspendible function that does not block the hosting thread while waiting for the 1000 ms to elapse.
 
 ```Kotlin
 suspend fun suspendFunctionWithDelay(a: Int, b: Int): Int {
@@ -93,12 +93,12 @@ suspend fun suspendFunctionWithDelay(a: Int, b: Int): Int {
 }
 ```
 
-The first thing to notice is that a suspendable function declaration is prefixed with the `suspend` keywords.
+The first thing to notice is that a suspendible function declaration is prefixed with the `suspend` keywords.
 However, the remaining function signature remains unchanged: it still receives two integers and returns an integer.
 
 Looking into the function body we notice that it remains mostly unchanged, except for the `Thread.sleep` call that was replaced by a call to `suspendCoroutine`.
 
-This `suspendCoroutine` function is used to suspend the calling suspendable function. 
+This `suspendCoroutine` function is used to suspend the calling suspendible function. 
 It is available in the `kotlin.coroutines.experimental` package and has the following signature
 
 ```Kotlin
@@ -131,8 +131,8 @@ public interface Continuation<in T> {
 ```
 
 Ignoring the `context` field for the moment being, a `Continuation<T>` has two functions: 
-* the `resume` function, to be called if the suspendable function should resume normally with a value; 
-* and the `resumeWithException` function to be called if the suspendable function should resume with an exception.
+* the `resume` function, to be called if the suspendible function should resume normally with a value; 
+* and the `resumeWithException` function to be called if the suspendible function should resume with an exception.
 
 It is the responsability of the function invoking `suspendCoroutine` to pass a `block` that does something with the continuation.
 
@@ -174,7 +174,7 @@ Notice that the `main` function ends immediately after `step 1`, without waiting
 After the 1000 ms elapses, the `suspendFunctionWithDelay` resumes its execution in the `pool-1-thread-1` (a thread from the scheduled pool) and `step 2` is executed.
 
 Using `suspendCoroutine` directly in our `suspendFunctionWithDelay` makes the code a slightly brittle to read, namely due to the nested lambda passed as parameter.
-However, than can be easily solved by wrapping that behaviour on an helper suspendable function
+However, than can be easily solved by wrapping that behaviour on an helper suspendible function
 
 ```Kotlin
 suspend fun delay(ms: Long) {
@@ -195,10 +195,10 @@ suspend fun suspendFunctionWithDelay2(a: Int, b: Int): Int {
 ```
 which is as readable as our initial `simpleFunctionWithDelay` that used `Thread.sleep`, however has a non-blocking behaviour.
 
-Suspendable functions can call regular functions or other suspendable functions.
-However, suspendable functions cannot be be called directly from regular functions.
+suspendible functions can call regular functions or other suspendible functions.
+However, suspendible functions cannot be be called directly from regular functions.
 Namely, our regular `main` function cannot call `suspendFunctionWithDelay` directly.
-For that we need to use another function provided by the Kotlin library called `startCoroutine`, which is an regular (i.e. non-suspendable) extension function over a `suspendable lambda`.
+For that we need to use another function provided by the Kotlin library called `startCoroutine`, which is an regular (i.e. non-suspendible) extension function over a `suspendible lambda`.
 
 ```Kotlin
 public fun <T> (suspend  () -> T).startCoroutine(
@@ -207,13 +207,13 @@ public fun <T> (suspend  () -> T).startCoroutine(
 ```
 
 The `startCoroutine` receives:
-* the suspendable lambda to start (as the extension target).
-* the continuation to use when the suspendable function completes its execution.
+* the suspendible lambda to start (as the extension target).
+* the continuation to use when the suspendible function completes its execution.
 
 Using it we can create a simple `startAndForget`
 ```Kotlin
-fun startAndForget(suspendableFunction: suspend () -> Unit) {
-    suspendableFunction.startCoroutine(object : Continuation<Unit> {
+fun startAndForget(suspendibleFunction: suspend () -> Unit) {
+    suspendibleFunction.startCoroutine(object : Continuation<Unit> {
         override fun resume(value: Unit) {
             // forget it
         }
@@ -227,9 +227,9 @@ fun startAndForget(suspendableFunction: suspend () -> Unit) {
     })
 }
 ```
-that starts a suspendable function and ignores its result.
+that starts a suspendible function and ignores its result.
 
-We are now in condition to show the `main` function using the suspendable version
+We are now in condition to show the `main` function using the suspendible version
 ```Kotlin
 fun main(args: Array<String>) {
     log.info("main started")
@@ -256,9 +256,9 @@ The continuation passed in to startCoroutine allow us to do more interesting thi
 For instance, the following example uses a `CompletableFuture` to allow the `main` function to synchronize with the completable function termination.
 
 ```Kotlin
-fun startAndGetFuture(suspendableFunction: suspend () -> Unit): CompletableFuture<Unit>{
+fun startAndGetFuture(suspendibleFunction: suspend () -> Unit): CompletableFuture<Unit>{
     val future = CompletableFuture<Unit>()
-    suspendableFunction.startCoroutine(object : Continuation<Unit> {
+    suspendibleFunction.startCoroutine(object : Continuation<Unit> {
         override fun resume(value: Unit) {
             future.complete(value)
         }
@@ -299,10 +299,10 @@ which produces
 1025 [main] INFO intro - main ended
 ```
 
-Notice how the `main` function only ends after the suspendable function completely terminate (i.e. prints `result is 42`).
+Notice how the `main` function only ends after the suspendible function completely terminate (i.e. prints `result is 42`).
 
-Until now, and based solely on this simple example, all this suspendable mechanics may seem a rather complex way to achieve something that could be done using a simple callback.
-However, the advantage of the coroutine mechanism starts to be apparent when the suspendable functions is more than just an unconditional sequence of steps.
+Until now, and based solely on this simple example, all this suspendible mechanics may seem a rather complex way to achieve something that could be done using a simple callback.
+However, the advantage of the coroutine mechanism starts to be apparent when the suspendible functions is more than just an unconditional sequence of steps.
 
 ```Kotlin
 suspend fun suspendFunctionWithDelayAndALoopWithConditionalLogic(a: Int, b: Int): Int {
