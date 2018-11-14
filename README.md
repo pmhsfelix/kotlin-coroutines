@@ -1,2 +1,3 @@
 # kotlin-coroutines
-Just a set of examples using Kotlin coroutines
+
+Set of examples using Kotlin coroutines, mainly for education purposes.
