@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import org.springframework.web.context.request.async.DeferredResult
 import java.util.concurrent.Executors
+import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -96,6 +97,7 @@ class TheController {
     @GetMapping("/example-with-dispatcher")
     fun getExampleWithDispatcher() = asyncHandler {
         withContext(exampleDispatcher) {
+            log.info("using interceptor {}", coroutineContext[ContinuationInterceptor])
             example7(1)
         }
     }
