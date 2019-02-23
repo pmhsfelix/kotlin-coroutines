@@ -22,4 +22,3 @@ class SynchronousExceptionExamples {
         assertTrue(job.isCancelled)
     }
 }
-git

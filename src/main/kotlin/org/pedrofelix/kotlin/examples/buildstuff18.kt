@@ -20,7 +20,7 @@ fun blockingOperation(input: Int): Int {
 }
 
 private val executor = Executors.newScheduledThreadPool(5)
-qfun asyncOperationWithCallback(input: Int, callback: (Int) -> Unit): Unit {
+fun asyncOperationWithCallback(input: Int, callback: (Int) -> Unit): Unit {
     executor.schedule({ callback(input + 42) }, 1000, TimeUnit.MILLISECONDS)
 }
 
